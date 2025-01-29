@@ -3,6 +3,8 @@ import * as path from 'path'
 import { sign } from 'tweetnacl';
 import { decodeBase64, encodeBase64 } from 'tweetnacl-util';
 
+// console.log('naclUtil:', naclUtil)
+
 
 
 class CryptoTrader {
@@ -14,7 +16,7 @@ class CryptoTrader {
 
   constructor() {
     // Get env keys
-    dotenv.config({ path: path.resolve(__dirname, '../.env') });
+    dotenv.config({ path: path.resolve(process.cwd(), '../.env') });
     this.apiKey = process.env.RH_API_KEY ?? ""
     this.privateKeyBase64 = process.env.RH_PRIVATE_KEY ?? ""
 

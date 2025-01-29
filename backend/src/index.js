@@ -40,12 +40,13 @@ var dotenv = require("dotenv");
 var path = require("path");
 var tweetnacl_1 = require("tweetnacl");
 var tweetnacl_util_1 = require("tweetnacl-util");
+// console.log('naclUtil:', naclUtil)
 var CryptoTrader = /** @class */ (function () {
     function CryptoTrader() {
         var _a, _b;
         this.baseUrl = "https://trading.robinhood.com";
         // Get env keys
-        dotenv.config({ path: path.resolve(__dirname, '../.env') });
+        dotenv.config({ path: path.resolve(process.cwd(), '../.env') });
         this.apiKey = (_a = process.env.RH_API_KEY) !== null && _a !== void 0 ? _a : "";
         this.privateKeyBase64 = (_b = process.env.RH_PRIVATE_KEY) !== null && _b !== void 0 ? _b : "";
         // Generate private key
