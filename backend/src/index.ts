@@ -2,10 +2,10 @@ import * as dotenv from 'dotenv'
 import * as path from 'path'
 import { sign } from 'tweetnacl';
 import { decodeBase64, encodeBase64 } from 'tweetnacl-util';
+import * as _ from 'lodash'
+import { v4 as uuidv4 } from 'uuid'
 
-// console.log('naclUtil:', naclUtil)
-
-
+import { ApifyClient } from 'apify-client';
 
 class CryptoTrader {
   private apiKey: string;
@@ -29,8 +29,8 @@ class CryptoTrader {
   get_timestamp(): number {
     // const timestamp = Math.floor(Date.now() / 1000);
     const timestamp = Math.floor(Date.now() / 1000)
-    console.log("Local timestamp generated:", timestamp)
-    console.log("Human readable UTC time:", new Date(timestamp * 1000).toUTCString())
+    // console.log("Local timestamp generated:", timestamp)
+    // console.log("Human readable UTC time:", new Date(timestamp * 1000).toUTCString())
     return timestamp
   }
 
@@ -46,7 +46,7 @@ class CryptoTrader {
     return ("?" + params.join("&"))
   }
 
-  get_headers(method: string, path: string, body: string, timestamp: number): Record<string, string> {
+  get_authorization_header(method: string, path: string, body: string, timestamp: number): Record<string, string> {
     const messageToSign = (this.apiKey + timestamp + path + method + body)
     const messageUint8 = new TextEncoder().encode(messageToSign)
     const signed = sign.detached(messageUint8, this.privateKey)
@@ -60,14 +60,16 @@ class CryptoTrader {
   async make_api_request(method: string, path: string, body: string = "") {
     const start = Date.now()
     const timestamp = this.get_timestamp()
-    console.log("The timestamp for this request is: " + timestamp)
-    const headers = this.get_headers(method, path, body, timestamp)
+    // console.log("The timestamp for this request is: " + timestamp)
+    const headers = {
+      ...this.get_authorization_header(method, path, body, timestamp),
+      "Content-Type": "application/json"
+    }
     const url = this.baseUrl + path
 
     let response: Response;
     try {
       if (method === "GET") {
-        console.log("Sending GET request...")
         response = await fetch(url, {
           method: method,
           headers: headers,
@@ -83,9 +85,12 @@ class CryptoTrader {
       const timeTaken = end - start
       const responseText = await response.text()
 
-      console.log(`Server took ${timeTaken}ms to respond`)
-      console.log("Response status: " + response.status)
-      console.log("Response time: " + response.headers.get('date'))
+      // console.log(`Server took ${timeTaken}ms to respond`)
+      // console.log("Response status: " + response.status)
+      // console.log("Response time: " + response.headers.get('date'))
+      // console.dir("Request URL: " + url)
+      // console.dir("Request headers: " + headers)
+      // console.dir("Request body: " + body)
 
       return responseText ? JSON.parse(responseText) : null;
     } catch (error) {
@@ -112,7 +117,7 @@ class CryptoTrader {
     }
 
     const path = holdingsPath + query_params
-    console.log("Sending request: GET holdings...")
+    // console.log("Sending request: GET holdings...")
     return this.make_api_request("GET", path)
   }
 
@@ -139,44 +144,121 @@ class CryptoTrader {
     order_type: string,
     symbol: string,
     order_config: Record<string, string>
-  ): any {
+  ): Promise<any> {
     const path = "/api/v1/crypto/trading/orders/"
     const body = {
       "client_order_id": client_order_id,
       "side": side,
       "type": order_type,
       "symbol": symbol,
-      [order_type + "_order_conrfig"]: order_config
+      [order_type + "_order_config"]: order_config
     }
     return this.make_api_request("POST", path, JSON.stringify(body))
   }
 
-  cancel_order(order_id: string): any {
+  cancel_order(order_id: string): Promise<any> {
     const path = ("/api/v1/crypto/trading/orders/" + order_id + "/cancel/")
     return this.make_api_request("POST", path)
   }
 
-  get_order(order_id: string): any {
+  get_order(order_id: string): Promise<any> {
     const path = ("/api/v1/crypto/trading/orders/" + order_id + "/")
     return this.make_api_request("GET", path)
   }
 
-  get_orders(): any {
+  get_orders(): Promise<any> {
     const path = "/api/v1/crypto/trading/orders/"
     return this.make_api_request("GET", path)
   }
 }
 
+class CapitolTradesScraper {
+  private apiKey: string;
+  private baseUrl: string = "https://www.capitoltrades.com/trades?politician="
+  private actor: string = "saswave/capitol-trades-scraper"
+  private client: ApifyClient;
+
+  constructor() {
+    dotenv.config({ path: path.resolve(process.cwd(), '../.env') });
+    this.apiKey = process.env.APIFY_TOKEN ?? ""
+    this.client = new ApifyClient({
+      token: this.apiKey
+    })
+  }
+
+  async get_trades(politician: string): Promise<any[]> {
+    const url = this.baseUrl + politician + "&txDate=90d"
+    const input = {
+      "start_url": url
+    }
+    const run = await this.client.actor(this.actor).call(input)
+    const { items } = await this.client.dataset(run.defaultDatasetId).listItems();
+    // console.dir(items)
+
+
+    let recentTrades: Record<string, unknown>[] = []
+    for (const item of items) {
+      if (item["traded"]) {
+        const year = (item["traded"] as string).trim()
+        if (year === "2025") {
+          const trade = {
+            ticker: item.traded_issuer_ticker,
+            action: item.type,
+            size: item.size
+          }
+          recentTrades.push(trade)
+        }
+      }
+    }
+    // console.dir(recentTrades)
+    // console.log(`Check your data here: https://console.apify.com/storage/datasets/${run.defaultDatasetId}`)
+    return recentTrades
+  }
+}
+
 async function main(): Promise<void> {
+  const ethAmount = 0.0001
   const rh = new CryptoTrader()
   const account = await rh.get_account()
-  console.log("Created connection to account: " + account)
+  console.log(`Successfully connected to your Robinhood Account!`)
 
-  const holdings = await rh.get_holdings(['ETH', 'BTC'])
-  console.log("My crypto holdings:")
-  console.log(holdings)
+  const holdings = await rh.get_holdings(['ETH'])
+  console.log(`Your account currently holds ${holdings.results[0].total_quantity} ETH.`)
 
-  rh.get_holdings()
+  const scraper = new CapitolTradesScraper()
+  // Nancy Pelosi ID on Capitol Trades: P000197
+  const politicianID = "P000197"
+  const recentTrades = await scraper.get_trades(politicianID)
+
+  console.log(`Recent (2025) Trades for Politician ${politicianID}:`)
+  console.dir(recentTrades)
+
+  console.log("For demo purposes, buy/sell orders will be executed on crypto instead of stock.")
+  console.log("The size of the order will determined by the size of the reported trade. ")
+  console.log("There are only three sizes of trades, corresponding to 1x, 2x, and 3x orders.")
+
+  for (const trade of recentTrades) {
+    const size = trade.size as string
+    let multiplier: number;
+    if (size.includes("1M")) {
+      multiplier = 3
+    } else if (size.includes("500K")) {
+      multiplier = 2
+    } else {
+      multiplier = 1
+    }
+
+    console.log(`Opening a ${trade.action} order for ${multiplier * ethAmount} ETH...`)
+
+    const order_id: string = uuidv4();
+    const response = await rh.place_order(
+      order_id,
+      `${trade.action}`,
+      "market",
+      "ETH-USD",
+      { "asset_quantity": `${ethAmount}` }
+    )
+  }
 }
 
 main()
