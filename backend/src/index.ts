@@ -91,6 +91,10 @@ class CryptoTrader {
     }
   }
 
+  get_account(): Promise<any> {
+    const path = "/api/v1/crypto/trading/accounts/"
+    return this.make_api_request("GET", path)
+  }
 
   /**
    * Gets information about crypto holdings
@@ -110,31 +114,62 @@ class CryptoTrader {
     return this.make_api_request("GET", path)
   }
 
-  get_account(): Promise<any> {
-    const path = "/api/v1/crypto/trading/accounts/"
-    return this.make_api_request("GET", path)
-  }
-
   get_trading_pairs(symbols?: string[]): Promise<any> {
     const query_params = this.get_query_params("symbol", symbols)
-    const path = ("/api/v1/crypto/trading/holdings/" + { query_params })
+    const path = ("/api/v1/crypto/trading/trading_pairs/" + { query_params })
     return this.make_api_request("GET", path)
   }
 
   get_best_bid_ask(symbols?: string[]): Promise<any> {
     const query_params = this.get_query_params("symbol", symbols)
-    const path = ("/api/v1/crypto/trading/holdings/" + { query_params })
+    const path = ("/api/v1/crypto/trading/best_bid_ask/" + { query_params })
     return this.make_api_request("GET", path)
   }
-  
+
   get_estimated_price(symbol: string, side: string, quanitity: string): Promise<any> {
     const path = ("/api/v1/crypto/marketdata/estimated_price/?symbol=" + symbol + "&side=" + side + "&quantity=" + quanitity)
+    return this.make_api_request("GET", path)
+  }
+
+  place_order(
+    client_order_id: string,
+    side: string,
+    order_type: string,
+    symbol: string,
+    order_config: Record<string, string>
+  ): any {
+    const path = "/api/v1/crypto/trading/orders/"
+    const body = {
+      "client_order_id": client_order_id,
+      "side": side,
+      "type": order_type,
+      "symbol": symbol,
+      [order_type + "_order_conrfig"]: order_config
+    }
+    return this.make_api_request("POST", path, JSON.stringify(body))
+  }
+
+  cancel_order(order_id: string): any {
+    const path = ("/api/v1/crypto/trading/orders/" + order_id + "/cancel/")
+    return this.make_api_request("POST", path)
+  }
+
+  get_order(order_id: string): any {
+    const path = ("/api/v1/crypto/trading/orders/" + order_id + "/")
+    return this.make_api_request("GET", path)
+  }
+
+  get_orders(): any {
+    const path = "/api/v1/crypto/trading/orders/"
     return this.make_api_request("GET", path)
   }
 }
 
 async function main(): Promise<void> {
   const rh = new CryptoTrader()
+  const account = await rh.get_account()
+  console.log("Created connection to account: " + account)
+
   const holdings = await rh.get_holdings(['ETH', 'BTC'])
   console.log("My crypto holdings:")
   console.log(holdings)

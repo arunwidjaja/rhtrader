@@ -134,6 +134,14 @@ var CryptoTrader = /** @class */ (function () {
             });
         });
     };
+    CryptoTrader.prototype.get_account = function () {
+        var path = "/api/v1/crypto/trading/accounts/";
+        return this.make_api_request("GET", path);
+    };
+    /**
+     * Gets information about crypto holdings
+     * @param asset_codes - List of currency tickers. If blank, gets information about all.
+     */
     CryptoTrader.prototype.get_holdings = function (asset_codes) {
         var holdingsPath = "/api/v1/crypto/trading/holdings/";
         var query_params;
@@ -147,38 +155,64 @@ var CryptoTrader = /** @class */ (function () {
         console.log("Sending request: GET holdings...");
         return this.make_api_request("GET", path);
     };
-    CryptoTrader.prototype.get_account = function () {
-        var path = "/api/v1/crypto/trading/accounts/";
-        return this.make_api_request("GET", path);
-    };
     CryptoTrader.prototype.get_trading_pairs = function (symbols) {
         var query_params = this.get_query_params("symbol", symbols);
-        var path = ("/api/v1/crypto/trading/holdings/" + { query_params: query_params });
+        var path = ("/api/v1/crypto/trading/trading_pairs/" + { query_params: query_params });
         return this.make_api_request("GET", path);
     };
     CryptoTrader.prototype.get_best_bid_ask = function (symbols) {
         var query_params = this.get_query_params("symbol", symbols);
-        var path = ("/api/v1/crypto/trading/holdings/" + { query_params: query_params });
+        var path = ("/api/v1/crypto/trading/best_bid_ask/" + { query_params: query_params });
         return this.make_api_request("GET", path);
     };
     CryptoTrader.prototype.get_estimated_price = function (symbol, side, quanitity) {
         var path = ("/api/v1/crypto/marketdata/estimated_price/?symbol=" + symbol + "&side=" + side + "&quantity=" + quanitity);
         return this.make_api_request("GET", path);
     };
+    CryptoTrader.prototype.place_order = function (client_order_id, side, order_type, symbol, order_config) {
+        var _a;
+        var path = "/api/v1/crypto/trading/orders/";
+        var body = (_a = {
+                "client_order_id": client_order_id,
+                "side": side,
+                "type": order_type,
+                "symbol": symbol
+            },
+            _a[order_type + "_order_conrfig"] = order_config,
+            _a);
+        return this.make_api_request("POST", path, JSON.stringify(body));
+    };
+    CryptoTrader.prototype.cancel_order = function (order_id) {
+        var path = ("/api/v1/crypto/trading/orders/" + order_id + "/cancel/");
+        return this.make_api_request("POST", path);
+    };
+    CryptoTrader.prototype.get_order = function (order_id) {
+        var path = ("/api/v1/crypto/trading/orders/" + order_id + "/");
+        return this.make_api_request("GET", path);
+    };
+    CryptoTrader.prototype.get_orders = function () {
+        var path = "/api/v1/crypto/trading/orders/";
+        return this.make_api_request("GET", path);
+    };
     return CryptoTrader;
 }());
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var rh, holdings;
+        var rh, account, holdings;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     rh = new CryptoTrader();
-                    return [4 /*yield*/, rh.get_holdings(['ETH', 'BTC'])];
+                    return [4 /*yield*/, rh.get_account()];
                 case 1:
+                    account = _a.sent();
+                    console.log("Created connection to account: " + account);
+                    return [4 /*yield*/, rh.get_holdings(['ETH', 'BTC'])];
+                case 2:
                     holdings = _a.sent();
                     console.log("My crypto holdings:");
                     console.log(holdings);
+                    rh.get_holdings();
                     return [2 /*return*/];
             }
         });
