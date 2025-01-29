@@ -256,7 +256,7 @@ async function main(): Promise<void> {
       `${trade.action}`,
       "market",
       "ETH-USD",
-      { "asset_quantity": `${ethAmount}` }
+      { "asset_quantity": `${ethAmount * multiplier}` }
     )
   }
 }
