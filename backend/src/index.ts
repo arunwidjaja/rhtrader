@@ -91,6 +91,11 @@ class CryptoTrader {
     }
   }
 
+
+  /**
+   * Gets information about crypto holdings
+   * @param asset_codes - List of currency tickers. If blank, gets information about all.
+   */
   get_holdings(asset_codes?: string[]): Promise<any> {
     const holdingsPath = "/api/v1/crypto/trading/holdings/"
     let query_params: string;
@@ -133,6 +138,8 @@ async function main(): Promise<void> {
   const holdings = await rh.get_holdings(['ETH', 'BTC'])
   console.log("My crypto holdings:")
   console.log(holdings)
+
+  rh.get_holdings()
 }
 
 main()
