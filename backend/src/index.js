@@ -1,15 +1,4 @@
 "use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -47,235 +36,25 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var dotenv = require("dotenv");
-var path = require("path");
-var tweetnacl_1 = require("tweetnacl");
-var tweetnacl_util_1 = require("tweetnacl-util");
 var uuid_1 = require("uuid");
-var apify_client_1 = require("apify-client");
-var CryptoTrader = /** @class */ (function () {
-    function CryptoTrader() {
-        var _a, _b;
-        this.baseUrl = "https://trading.robinhood.com";
-        // Get env keys
-        dotenv.config({ path: path.resolve(process.cwd(), '../.env') });
-        this.apiKey = (_a = process.env.RH_API_KEY) !== null && _a !== void 0 ? _a : "";
-        this.privateKeyBase64 = (_b = process.env.RH_PRIVATE_KEY) !== null && _b !== void 0 ? _b : "";
-        // Generate private key
-        var secretKey = (0, tweetnacl_util_1.decodeBase64)(this.privateKeyBase64);
-        var keyPair = tweetnacl_1.sign.keyPair.fromSecretKey(secretKey);
-        this.privateKey = keyPair.secretKey;
-    }
-    CryptoTrader.prototype.get_timestamp = function () {
-        // const timestamp = Math.floor(Date.now() / 1000);
-        var timestamp = Math.floor(Date.now() / 1000);
-        // console.log("Local timestamp generated:", timestamp)
-        // console.log("Human readable UTC time:", new Date(timestamp * 1000).toUTCString())
-        return timestamp;
-    };
-    CryptoTrader.prototype.get_query_params = function (key, args) {
-        var params = [];
-        if (!args) {
-            return "";
-        }
-        else {
-            for (var _i = 0, args_1 = args; _i < args_1.length; _i++) {
-                var arg = args_1[_i];
-                params.push(key + "=" + arg);
-            }
-        }
-        return ("?" + params.join("&"));
-    };
-    CryptoTrader.prototype.get_authorization_header = function (method, path, body, timestamp) {
-        var messageToSign = (this.apiKey + timestamp + path + method + body);
-        var messageUint8 = new TextEncoder().encode(messageToSign);
-        var signed = tweetnacl_1.sign.detached(messageUint8, this.privateKey);
-        return {
-            "x-api-key": this.apiKey,
-            "x-signature": (0, tweetnacl_util_1.encodeBase64)(signed),
-            "x-timestamp": timestamp.toString(),
-        };
-    };
-    CryptoTrader.prototype.make_api_request = function (method_1, path_1) {
-        return __awaiter(this, arguments, void 0, function (method, path, body) {
-            var start, timestamp, headers, url, response, end, timeTaken, responseText, error_1;
-            if (body === void 0) { body = ""; }
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        start = Date.now();
-                        timestamp = this.get_timestamp();
-                        headers = __assign(__assign({}, this.get_authorization_header(method, path, body, timestamp)), { "Content-Type": "application/json" });
-                        url = this.baseUrl + path;
-                        _a.label = 1;
-                    case 1:
-                        _a.trys.push([1, 7, , 8]);
-                        if (!(method === "GET")) return [3 /*break*/, 3];
-                        return [4 /*yield*/, fetch(url, {
-                                method: method,
-                                headers: headers,
-                            })];
-                    case 2:
-                        response = _a.sent();
-                        return [3 /*break*/, 5];
-                    case 3: return [4 /*yield*/, fetch(url, {
-                            method: method,
-                            headers: headers,
-                            body: body
-                        })];
-                    case 4:
-                        response = _a.sent();
-                        _a.label = 5;
-                    case 5:
-                        end = Date.now();
-                        timeTaken = end - start;
-                        return [4 /*yield*/, response.text()
-                            // console.log(`Server took ${timeTaken}ms to respond`)
-                            // console.log("Response status: " + response.status)
-                            // console.log("Response time: " + response.headers.get('date'))
-                            // console.dir("Request URL: " + url)
-                            // console.dir("Request headers: " + headers)
-                            // console.dir("Request body: " + body)
-                        ];
-                    case 6:
-                        responseText = _a.sent();
-                        // console.log(`Server took ${timeTaken}ms to respond`)
-                        // console.log("Response status: " + response.status)
-                        // console.log("Response time: " + response.headers.get('date'))
-                        // console.dir("Request URL: " + url)
-                        // console.dir("Request headers: " + headers)
-                        // console.dir("Request body: " + body)
-                        return [2 /*return*/, responseText ? JSON.parse(responseText) : null];
-                    case 7:
-                        error_1 = _a.sent();
-                        console.log("There was an error making the API request: " + error_1);
-                        return [3 /*break*/, 8];
-                    case 8: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    CryptoTrader.prototype.get_account = function () {
-        var path = "/api/v1/crypto/trading/accounts/";
-        return this.make_api_request("GET", path);
-    };
-    /**
-     * Gets information about crypto holdings
-     * @param asset_codes - List of currency tickers. If blank, gets information about all.
-     */
-    CryptoTrader.prototype.get_holdings = function (asset_codes) {
-        var holdingsPath = "/api/v1/crypto/trading/holdings/";
-        var query_params;
-        if (asset_codes) {
-            query_params = this.get_query_params(this.apiKey, asset_codes);
-        }
-        else {
-            query_params = this.get_query_params(this.apiKey);
-        }
-        var path = holdingsPath + query_params;
-        // console.log("Sending request: GET holdings...")
-        return this.make_api_request("GET", path);
-    };
-    CryptoTrader.prototype.get_trading_pairs = function (symbols) {
-        var query_params = this.get_query_params("symbol", symbols);
-        var path = ("/api/v1/crypto/trading/trading_pairs/" + { query_params: query_params });
-        return this.make_api_request("GET", path);
-    };
-    CryptoTrader.prototype.get_best_bid_ask = function (symbols) {
-        var query_params = this.get_query_params("symbol", symbols);
-        var path = ("/api/v1/crypto/trading/best_bid_ask/" + { query_params: query_params });
-        return this.make_api_request("GET", path);
-    };
-    CryptoTrader.prototype.get_estimated_price = function (symbol, side, quanitity) {
-        var path = ("/api/v1/crypto/marketdata/estimated_price/?symbol=" + symbol + "&side=" + side + "&quantity=" + quanitity);
-        return this.make_api_request("GET", path);
-    };
-    CryptoTrader.prototype.place_order = function (client_order_id, side, order_type, symbol, order_config) {
-        var _a;
-        var path = "/api/v1/crypto/trading/orders/";
-        var body = (_a = {
-                "client_order_id": client_order_id,
-                "side": side,
-                "type": order_type,
-                "symbol": symbol
-            },
-            _a[order_type + "_order_config"] = order_config,
-            _a);
-        return this.make_api_request("POST", path, JSON.stringify(body));
-    };
-    CryptoTrader.prototype.cancel_order = function (order_id) {
-        var path = ("/api/v1/crypto/trading/orders/" + order_id + "/cancel/");
-        return this.make_api_request("POST", path);
-    };
-    CryptoTrader.prototype.get_order = function (order_id) {
-        var path = ("/api/v1/crypto/trading/orders/" + order_id + "/");
-        return this.make_api_request("GET", path);
-    };
-    CryptoTrader.prototype.get_orders = function () {
-        var path = "/api/v1/crypto/trading/orders/";
-        return this.make_api_request("GET", path);
-    };
-    return CryptoTrader;
-}());
-var CapitolTradesScraper = /** @class */ (function () {
-    function CapitolTradesScraper() {
-        var _a;
-        this.baseUrl = "https://www.capitoltrades.com/trades?politician=";
-        this.actor = "saswave/capitol-trades-scraper";
-        dotenv.config({ path: path.resolve(process.cwd(), '../.env') });
-        this.apiKey = (_a = process.env.APIFY_TOKEN) !== null && _a !== void 0 ? _a : "";
-        this.client = new apify_client_1.ApifyClient({
-            token: this.apiKey
-        });
-    }
-    CapitolTradesScraper.prototype.get_trades = function (politician) {
-        return __awaiter(this, void 0, void 0, function () {
-            var url, input, run, items, recentTrades, _i, items_1, item, year, trade;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        url = this.baseUrl + politician + "&txDate=90d";
-                        input = {
-                            "start_url": url
-                        };
-                        return [4 /*yield*/, this.client.actor(this.actor).call(input)];
-                    case 1:
-                        run = _a.sent();
-                        return [4 /*yield*/, this.client.dataset(run.defaultDatasetId).listItems()];
-                    case 2:
-                        items = (_a.sent()).items;
-                        recentTrades = [];
-                        for (_i = 0, items_1 = items; _i < items_1.length; _i++) {
-                            item = items_1[_i];
-                            if (item["traded"]) {
-                                year = item["traded"].trim();
-                                if (year === "2025") {
-                                    trade = {
-                                        ticker: item.traded_issuer_ticker,
-                                        action: item.type,
-                                        size: item.size
-                                    };
-                                    recentTrades.push(trade);
-                                }
-                            }
-                        }
-                        // console.dir(recentTrades)
-                        // console.log(`Check your data here: https://console.apify.com/storage/datasets/${run.defaultDatasetId}`)
-                        return [2 /*return*/, recentTrades];
-                }
-            });
-        });
-    };
-    return CapitolTradesScraper;
-}());
-function main() {
+var robinhood_1 = require("./robinhood");
+var capitolTradesScraper_1 = require("./capitolTradesScraper");
+/**
+ * Testing the CapitolTrades.com scraper and the RobinHood API.
+ * This just uses dummy logic. It buys/trades crypto based on whether the given congress member bought/sold stock.
+ *
+ * @param baseEthAmount The amount of ETH to trade per transaction. Pick a small number.
+ * @param capitolTradesID The politician to track.
+ */
+function rhAndScraperTest(baseEthAmount, capitolTradesID) {
     return __awaiter(this, void 0, void 0, function () {
-        var ethAmount, rh, account, holdings, scraper, politicianID, recentTrades, _i, recentTrades_1, trade, size, multiplier, order_id, response;
+        var ethAmount, pid, rh, account, holdings, scraper, recentTrades, _i, recentTrades_1, trade, size, multiplier, order_id, response;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    ethAmount = 0.0001;
-                    rh = new CryptoTrader();
+                    ethAmount = baseEthAmount;
+                    pid = capitolTradesID;
+                    rh = new robinhood_1.RobinHoodCryptoTrader();
                     return [4 /*yield*/, rh.get_account()];
                 case 1:
                     account = _a.sent();
@@ -284,12 +63,11 @@ function main() {
                 case 2:
                     holdings = _a.sent();
                     console.log("Your account currently holds ".concat(holdings.results[0].total_quantity, " ETH."));
-                    scraper = new CapitolTradesScraper();
-                    politicianID = "P000197";
-                    return [4 /*yield*/, scraper.get_trades(politicianID)];
+                    scraper = new capitolTradesScraper_1.CapitolTradesScraper();
+                    return [4 /*yield*/, scraper.get_trades(pid)];
                 case 3:
                     recentTrades = _a.sent();
-                    console.log("Recent (2025) Trades for Politician ".concat(politicianID, ":"));
+                    console.log("Recent (2025) Trades for Politician ".concat(pid, ":"));
                     console.dir(recentTrades);
                     console.log("For demo purposes, buy/sell orders will be executed on crypto instead of stock.");
                     console.log("The size of the order will determined by the size of the reported trade. ");
@@ -312,7 +90,7 @@ function main() {
                     }
                     console.log("Opening a ".concat(trade.action, " order for ").concat(multiplier * ethAmount, " ETH..."));
                     order_id = (0, uuid_1.v4)();
-                    return [4 /*yield*/, rh.place_order(order_id, "".concat(trade.action), "market", "ETH-USD", { "asset_quantity": "".concat(ethAmount) })];
+                    return [4 /*yield*/, rh.place_order(order_id, "".concat(trade.action), "market", "ETH-USD", { "asset_quantity": "".concat(ethAmount * multiplier) })];
                 case 5:
                     response = _a.sent();
                     _a.label = 6;
@@ -320,6 +98,22 @@ function main() {
                     _i++;
                     return [3 /*break*/, 4];
                 case 7: return [2 /*return*/];
+            }
+        });
+    });
+}
+function main() {
+    return __awaiter(this, void 0, void 0, function () {
+        var pelosiID, ethAmount;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    pelosiID = "P000197";
+                    ethAmount = 0.0001;
+                    return [4 /*yield*/, rhAndScraperTest(ethAmount, pelosiID)];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/];
             }
         });
     });
