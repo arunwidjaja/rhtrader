@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 import { RobinHoodCryptoTrader } from './robinhood';
 import { CapitolTradesScraper } from './capitolTradesScraper';
+import { eTradeSandboxTrader } from './etrade';
 
 /**
  * Testing the CapitolTrades.com scraper and the RobinHood API.
@@ -56,10 +57,22 @@ async function rhAndScraperTest(baseEthAmount: number, capitolTradesID: string):
   }
 }
 
+async function etradeTest() {
+  const etradeTrader = new eTradeSandboxTrader()
+  try {
+    const tokenData = await etradeTrader.authorize()
+  } catch (error) {
+    console.error("Token Request Failed: ", error)
+  }
+  // await etradeTrader.completeAuthorization()
+}
+
 async function main() {
-  const pelosiID = "P000197"
-  const ethAmount = 0.0001
-  await rhAndScraperTest(ethAmount, pelosiID)
+  // const pelosiID = "P000197"
+  // const ethAmount = 0.0001
+  // await rhAndScraperTest(ethAmount, pelosiID)
+
+  etradeTest()
 }
 
 

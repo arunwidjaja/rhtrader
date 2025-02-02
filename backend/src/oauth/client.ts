@@ -19,8 +19,8 @@ export class eTradeOauth {
     this.secretKey = config.secretKey;
     this.baseURL = config.baseURL;
     this.authorizeURL = config.authorizeURL;
-    this.tokenURL = config.requestTokenURL;
-    this.accessURL = config.accessTokenURL;
+    this.tokenURL = config.tokenURL;
+    this.accessURL = config.accessURL;
 
     this.oauthClient = new OAuth(
       `${this.baseURL}${this.tokenURL}`,
@@ -39,15 +39,32 @@ export class eTradeOauth {
     authorizeURL: string;
     query: any;
   }> {
+    console.log("Requesting a token...")
     return new Promise((resolve, reject) => {
-      this.oauthClient.getOAuthRequestToken((err, oauthToken, oauthTokenSecret, parsedQueryString) => {
+      const extraParams = {
+        'oauth_callback': 'oob'
+      }
+      this.oauthClient.getOAuthRequestToken(extraParams, (err, oauthToken, oauthTokenSecret, parsedQueryString) => {
+        console.log('OAuth Response:', {
+          error: err,
+          token: oauthToken,
+          tokenSecret: oauthTokenSecret?.slice(0,5) + '...',
+          queryParams: parsedQueryString
+        });
+
         if (err) {
-          return reject(err);
+          console.error('OAuth request token error:', err);
+          return reject(new Error(`OAuth request failed: ${JSON.stringify(err)}`));
+        }
+
+        if (!oauthToken || !oauthTokenSecret) {
+          return reject(new Error('OAuth tokens were not provided.'));
         }
         resolve({
           token: oauthToken,
           tokenSecret: oauthTokenSecret,
-          authorizeURL: `${this.authorizeURL}?key=${oauthToken}`,
+          authorizeURL: `${this.authorizeURL}?key=${this.apiKey}&token=${oauthToken}`,
+          // authorizeURL: parsedQueryString.login_url,
           query: parsedQueryString,
         });
       });

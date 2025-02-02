@@ -39,6 +39,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var uuid_1 = require("uuid");
 var robinhood_1 = require("./robinhood");
 var capitolTradesScraper_1 = require("./capitolTradesScraper");
+var etrade_1 = require("./etrade");
 /**
  * Testing the CapitolTrades.com scraper and the RobinHood API.
  * This just uses dummy logic. It buys/trades crypto based on whether the given congress member bought/sold stock.
@@ -102,19 +103,37 @@ function rhAndScraperTest(baseEthAmount, capitolTradesID) {
         });
     });
 }
-function main() {
+function etradeTest() {
     return __awaiter(this, void 0, void 0, function () {
-        var pelosiID, ethAmount;
+        var etradeTrader, tokenData, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    pelosiID = "P000197";
-                    ethAmount = 0.0001;
-                    return [4 /*yield*/, rhAndScraperTest(ethAmount, pelosiID)];
+                    etradeTrader = new etrade_1.eTradeSandboxTrader();
+                    _a.label = 1;
                 case 1:
-                    _a.sent();
-                    return [2 /*return*/];
+                    _a.trys.push([1, 3, , 4]);
+                    return [4 /*yield*/, etradeTrader.authorize()];
+                case 2:
+                    tokenData = _a.sent();
+                    return [3 /*break*/, 4];
+                case 3:
+                    error_1 = _a.sent();
+                    console.error("Token Request Failed: ", error_1);
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/];
             }
+        });
+    });
+}
+function main() {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            // const pelosiID = "P000197"
+            // const ethAmount = 0.0001
+            // await rhAndScraperTest(ethAmount, pelosiID)
+            etradeTest();
+            return [2 /*return*/];
         });
     });
 }

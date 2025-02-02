@@ -56,6 +56,11 @@ var tweetnacl_1 = require("tweetnacl");
 function printThis(printThis) {
     console.log(printThis);
 }
+/**
+ * Initializes a connection with Robinhood account.
+ *
+ * Contains basic functions for placing crypto trades and viewing crypto account information
+ */
 var RobinHoodCryptoTrader = /** @class */ (function () {
     function RobinHoodCryptoTrader() {
         var _a, _b;

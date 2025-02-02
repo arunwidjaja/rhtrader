@@ -1,8 +1,8 @@
 import * as dotenv from 'dotenv'
 import * as path from 'path'
+import * as url from 'node:url'
 
 import { eTradeOauth } from './oauth/client';
-import url from 'node:url'
 
 export class eTradeSandboxTrader {
     private sandboxKey: string;
@@ -10,9 +10,9 @@ export class eTradeSandboxTrader {
 
     private baseUrl: string;
 
-    private oauthAuthorizeUrl: string;
-    private oauthAccessUrl: string;
-    private oAuthTokenUrl: string;
+    private oauthAuthorizeURL: string;
+    private oauthAccessURL: string;
+    private oauthTokenURL: string;
 
     private oAuthClient: eTradeOauth;
 
@@ -26,11 +26,14 @@ export class eTradeSandboxTrader {
     constructor() {
         dotenv.config({ path: path.resolve(process.cwd(), '../.env') });
         this.sandboxKey = process.env.ET_SANDBOX_API_KEY ?? ""
-        this.secretKey = process.env.ET_SECRETY_KEY ?? ""
+        this.secretKey = process.env.ET_SECRET_KEY ?? ""
 
-        this.oauthAuthorizeUrl = "https://us.etrade.com/e/t/etws/authorize"
-        this.oauthAccessUrl = "/oauth/access_token"
-        this.oAuthTokenUrl = "/oauth/request_token"
+        this.oauthAuthorizeURL = "https://us.etrade.com/e/t/etws/authorize"
+        // this.oauthAccessURL = "https://apisb.etrade.com/oauth/access_token"
+        // this.oauthTokenURL = "https://apisb.etrade.com/oauth/request_token"
+
+        this.oauthAccessURL = "/oauth/access_token"
+        this.oauthTokenURL = "/oauth/request_token"
 
         this.baseUrl = "https://apisb.etrade.com"
 
@@ -38,12 +41,15 @@ export class eTradeSandboxTrader {
             apiKey: this.sandboxKey,
             secretKey: this.secretKey,
             baseURL: this.baseUrl,
-            authorizeURL: this.oauthAuthorizeUrl,
-            tokenURL: this.oAuthTokenUrl,
-            accessURL: this.oauthAccessUrl,
+            authorizeURL: this.oauthAuthorizeURL,
+            tokenURL: this.oauthTokenURL,
+            accessURL: this.oauthAccessURL,
         }
 
         this.oAuthClient = new eTradeOauth(oauthConfig)
+
+
+        console.log("Successfully created new eTradeSanboxTrader")
     }
 
     async authorize(): Promise<string> {
@@ -108,22 +114,9 @@ export class eTradeSandboxTrader {
     // URLs are built using the buildURL function in the same file.
 
     // Example method for making an authenticated API call
-
-    async getAccountList(): Promise<any> {
-        if (!this.isAuthorized()) {
-            throw new Error('Not authorized. Please complete authorization flow first.');
-        }
-
-        const url = `${this.baseUrl}/v1/accounts/list`;
-        return this.oAuthClient.get(url, this.accessToken!, this.accessTokenSecret!);
-    }
-}
-
-function test() {
-    const trader = new eTradeSandboxTrader();
 }
 
 function main() {
-    test()
+    const trader = new eTradeSandboxTrader();
 }
 main()
