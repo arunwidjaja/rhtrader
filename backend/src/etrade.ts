@@ -46,21 +46,22 @@ export class eTradeSandboxTrader {
         }
 
         this.oAuthClient = new eTradeOauth(oauthConfig)
-
-
-        console.log("Successfully created new eTradeSanboxTrader")
     }
 
     async authorize(): Promise<string> {
-        const { token, tokenSecret, authorizeURL } = await this.oAuthClient.requestToken();
-        
-        console.log("Visit the following URL to get your authorization code:")
-        console.log(authorizeURL)
+        try {
+            const { token, tokenSecret, authorizeURL } = await this.oAuthClient.requestToken();
+            console.log("Visit the following URL to get your authorization code:")
+            console.log(authorizeURL)
 
-        this.tempToken = token;
-        this.tempTokenSecret = tokenSecret;
+            this.tempToken = token;
+            this.tempTokenSecret = tokenSecret;
 
-        return authorizeURL;
+            return authorizeURL;
+        } catch (error) {
+            console.log("Token Verification Failed: ", error)
+            throw error;
+        }
     }
 
     async completeAuthorization(): Promise<void> {
@@ -74,7 +75,7 @@ export class eTradeSandboxTrader {
         });
 
         const verificationCode = await new Promise<string>((resolve) => {
-            rl.question('Enter your authentication code: ', (code)=>{
+            rl.question('Enter your authentication code: ', (code) => {
                 rl.close();
                 resolve(code);
             })
@@ -90,7 +91,6 @@ export class eTradeSandboxTrader {
             console.error("Verification Failed.", error);
             throw error;
         }
-
     }
 
     /**

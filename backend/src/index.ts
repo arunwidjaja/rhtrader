@@ -59,35 +59,15 @@ async function rhAndScraperTest(baseEthAmount: number, capitolTradesID: string):
 }
 
 async function etradeTest() {
-  const etradeTrader = new eTradeSandboxTrader()
-  // const rl = readline.createInterface({
-  //   input: process.stdin,
-  //   output: process.stdout
-  // });
-  let authURL = "";
-  
-  try {
-    authURL = await etradeTrader.authorize()
-  } catch (error) {
-    console.error("Token Request Failed: ", error)
-  }
-
-  try {
-    await etradeTrader.completeAuthorization()
-  } catch (error) {
-    console.error("Token Verification Failed: ", error)
-  }
-
-
-
-  // await etradeTrader.completeAuthorization()
+  const etrader = new eTradeSandboxTrader()
+  await etrader.authorize()
+  await etrader.completeAuthorization()
 }
 
 async function main() {
   // const pelosiID = "P000197"
   // const ethAmount = 0.0001
   // await rhAndScraperTest(ethAmount, pelosiID)
-
   etradeTest()
 }
 
