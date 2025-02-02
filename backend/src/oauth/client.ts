@@ -39,7 +39,6 @@ export class eTradeOauth {
     authorizeURL: string;
     query: any;
   }> {
-    console.log("Requesting a token...")
     return new Promise((resolve, reject) => {
       const extraParams = {
         'oauth_callback': 'oob'
@@ -64,7 +63,6 @@ export class eTradeOauth {
           token: oauthToken,
           tokenSecret: oauthTokenSecret,
           authorizeURL: `${this.authorizeURL}?key=${this.apiKey}&token=${oauthToken}`,
-          // authorizeURL: parsedQueryString.login_url,
           query: parsedQueryString,
         });
       });

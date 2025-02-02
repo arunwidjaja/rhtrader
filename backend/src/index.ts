@@ -1,4 +1,5 @@
 import * as _ from 'lodash'
+import * as readline from 'readline'
 import { v4 as uuidv4 } from 'uuid'
 
 import { RobinHoodCryptoTrader } from './robinhood';
@@ -59,11 +60,26 @@ async function rhAndScraperTest(baseEthAmount: number, capitolTradesID: string):
 
 async function etradeTest() {
   const etradeTrader = new eTradeSandboxTrader()
+  // const rl = readline.createInterface({
+  //   input: process.stdin,
+  //   output: process.stdout
+  // });
+  let authURL = "";
+  
   try {
-    const tokenData = await etradeTrader.authorize()
+    authURL = await etradeTrader.authorize()
   } catch (error) {
     console.error("Token Request Failed: ", error)
   }
+
+  try {
+    await etradeTrader.completeAuthorization()
+  } catch (error) {
+    console.error("Token Verification Failed: ", error)
+  }
+
+
+
   // await etradeTrader.completeAuthorization()
 }
 

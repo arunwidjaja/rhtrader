@@ -16,7 +16,6 @@ var eTradeOauth = /** @class */ (function () {
     }
     eTradeOauth.prototype.requestToken = function () {
         var _this = this;
-        console.log("Requesting a token...");
         return new Promise(function (resolve, reject) {
             var extraParams = {
                 'oauth_callback': 'oob'
@@ -39,7 +38,6 @@ var eTradeOauth = /** @class */ (function () {
                     token: oauthToken,
                     tokenSecret: oauthTokenSecret,
                     authorizeURL: "".concat(_this.authorizeURL, "?key=").concat(_this.apiKey, "&token=").concat(oauthToken),
-                    // authorizeURL: parsedQueryString.login_url,
                     query: parsedQueryString,
                 });
             });

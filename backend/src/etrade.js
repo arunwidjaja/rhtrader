@@ -40,6 +40,7 @@ exports.eTradeSandboxTrader = void 0;
 var dotenv = require("dotenv");
 var path = require("path");
 var url = require("node:url");
+var readline = require("readline");
 var client_1 = require("./oauth/client");
 var eTradeSandboxTrader = /** @class */ (function () {
     function eTradeSandboxTrader() {
@@ -48,8 +49,6 @@ var eTradeSandboxTrader = /** @class */ (function () {
         this.sandboxKey = (_a = process.env.ET_SANDBOX_API_KEY) !== null && _a !== void 0 ? _a : "";
         this.secretKey = (_b = process.env.ET_SECRET_KEY) !== null && _b !== void 0 ? _b : "";
         this.oauthAuthorizeURL = "https://us.etrade.com/e/t/etws/authorize";
-        // this.oauthAccessURL = "https://apisb.etrade.com/oauth/access_token"
-        // this.oauthTokenURL = "https://apisb.etrade.com/oauth/request_token"
         this.oauthAccessURL = "/oauth/access_token";
         this.oauthTokenURL = "/oauth/request_token";
         this.baseUrl = "https://apisb.etrade.com";
@@ -72,8 +71,8 @@ var eTradeSandboxTrader = /** @class */ (function () {
                     case 0: return [4 /*yield*/, this.oAuthClient.requestToken()];
                     case 1:
                         _a = _b.sent(), token = _a.token, tokenSecret = _a.tokenSecret, authorizeURL = _a.authorizeURL;
-                        console.log('Please visit:', authorizeURL);
-                        console.log('After authorization, you will receive a verification code.');
+                        console.log("Visit the following URL to get your authorization code:");
+                        console.log(authorizeURL);
                         this.tempToken = token;
                         this.tempTokenSecret = tokenSecret;
                         return [2 /*return*/, authorizeURL];
@@ -83,17 +82,38 @@ var eTradeSandboxTrader = /** @class */ (function () {
     };
     eTradeSandboxTrader.prototype.completeAuthorization = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, token, tokenSecret;
+            var rl, verificationCode, _a, token, tokenSecret, error_1;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
                         if (!this.tempToken || !this.tempTokenSecret) {
                             throw new Error("No tokens found. Run authorize() first.");
                         }
-                        return [4 /*yield*/, this.oAuthClient.accessToken(this.tempToken, this.tempTokenSecret, "Enter your verification code: ")];
+                        rl = readline.createInterface({
+                            input: process.stdin,
+                            output: process.stdout
+                        });
+                        return [4 /*yield*/, new Promise(function (resolve) {
+                                rl.question('Enter your authentication code: ', function (code) {
+                                    rl.close();
+                                    resolve(code);
+                                });
+                            })];
                     case 1:
+                        verificationCode = _b.sent();
+                        _b.label = 2;
+                    case 2:
+                        _b.trys.push([2, 4, , 5]);
+                        return [4 /*yield*/, this.oAuthClient.accessToken(this.tempToken, this.tempTokenSecret, verificationCode)];
+                    case 3:
                         _a = _b.sent(), token = _a.token, tokenSecret = _a.tokenSecret;
-                        return [2 /*return*/];
+                        console.log("Successfully verified user!");
+                        return [3 /*break*/, 5];
+                    case 4:
+                        error_1 = _b.sent();
+                        console.error("Verification Failed.", error_1);
+                        throw error_1;
+                    case 5: return [2 /*return*/];
                 }
             });
         });

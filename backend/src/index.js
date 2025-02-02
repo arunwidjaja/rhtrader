@@ -105,23 +105,34 @@ function rhAndScraperTest(baseEthAmount, capitolTradesID) {
 }
 function etradeTest() {
     return __awaiter(this, void 0, void 0, function () {
-        var etradeTrader, tokenData, error_1;
+        var etradeTrader, authURL, error_1, error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     etradeTrader = new etrade_1.eTradeSandboxTrader();
+                    authURL = "";
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 3, , 4]);
                     return [4 /*yield*/, etradeTrader.authorize()];
                 case 2:
-                    tokenData = _a.sent();
+                    authURL = _a.sent();
                     return [3 /*break*/, 4];
                 case 3:
                     error_1 = _a.sent();
                     console.error("Token Request Failed: ", error_1);
                     return [3 /*break*/, 4];
-                case 4: return [2 /*return*/];
+                case 4:
+                    _a.trys.push([4, 6, , 7]);
+                    return [4 /*yield*/, etradeTrader.completeAuthorization()];
+                case 5:
+                    _a.sent();
+                    return [3 /*break*/, 7];
+                case 6:
+                    error_2 = _a.sent();
+                    console.error("Token Verification Failed: ", error_2);
+                    return [3 /*break*/, 7];
+                case 7: return [2 /*return*/];
             }
         });
     });

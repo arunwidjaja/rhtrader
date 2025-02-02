@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv'
 import * as path from 'path'
 import * as url from 'node:url'
+import * as readline from 'readline'
 
 import { eTradeOauth } from './oauth/client';
 
@@ -29,8 +30,6 @@ export class eTradeSandboxTrader {
         this.secretKey = process.env.ET_SECRET_KEY ?? ""
 
         this.oauthAuthorizeURL = "https://us.etrade.com/e/t/etws/authorize"
-        // this.oauthAccessURL = "https://apisb.etrade.com/oauth/access_token"
-        // this.oauthTokenURL = "https://apisb.etrade.com/oauth/request_token"
 
         this.oauthAccessURL = "/oauth/access_token"
         this.oauthTokenURL = "/oauth/request_token"
@@ -54,8 +53,9 @@ export class eTradeSandboxTrader {
 
     async authorize(): Promise<string> {
         const { token, tokenSecret, authorizeURL } = await this.oAuthClient.requestToken();
-        console.log('Please visit:', authorizeURL);
-        console.log('After authorization, you will receive a verification code.');
+        
+        console.log("Visit the following URL to get your authorization code:")
+        console.log(authorizeURL)
 
         this.tempToken = token;
         this.tempTokenSecret = tokenSecret;
@@ -67,11 +67,30 @@ export class eTradeSandboxTrader {
         if (!this.tempToken || !this.tempTokenSecret) {
             throw new Error("No tokens found. Run authorize() first.")
         }
-        const { token, tokenSecret } = await this.oAuthClient.accessToken(
-            this.tempToken,
-            this.tempTokenSecret,
-            "Enter your verification code: "
-        )
+
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
+        });
+
+        const verificationCode = await new Promise<string>((resolve) => {
+            rl.question('Enter your authentication code: ', (code)=>{
+                rl.close();
+                resolve(code);
+            })
+        });
+        try {
+            const { token, tokenSecret } = await this.oAuthClient.accessToken(
+                this.tempToken,
+                this.tempTokenSecret,
+                verificationCode
+            )
+            console.log("Successfully verified user!")
+        } catch (error) {
+            console.error("Verification Failed.", error);
+            throw error;
+        }
+
     }
 
     /**
