@@ -64,3 +64,6 @@ temp/
 # Misc
 .cache/
 .history/
+
+# Temporary folders
+EtradeNodeClient/

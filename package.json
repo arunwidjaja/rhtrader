@@ -1,5 +1,10 @@
 {
   "dependencies": {
-    "apify-client": "^2.11.1"
+    "apify-client": "^2.11.1",
+    "minimist": "^1.2.8",
+    "oauth": "^0.10.0"
+  },
+  "devDependencies": {
+    "@types/oauth": "^0.9.6"
   }
 }
