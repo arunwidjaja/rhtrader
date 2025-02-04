@@ -47,14 +47,14 @@ var etrade_1 = require("./etrade");
  * @param baseEthAmount The amount of ETH to trade per transaction. Pick a small number.
  * @param capitolTradesID The politician to track.
  */
-function rhAndScraperTest(baseEthAmount, capitolTradesID) {
+function rhAndScraperTest() {
     return __awaiter(this, void 0, void 0, function () {
         var ethAmount, pid, rh, account, holdings, scraper, recentTrades, _i, recentTrades_1, trade, size, multiplier, order_id, response;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    ethAmount = baseEthAmount;
-                    pid = capitolTradesID;
+                    ethAmount = 0.0001;
+                    pid = "P000197";
                     rh = new robinhood_1.RobinHoodCryptoTrader();
                     return [4 /*yield*/, rh.get_account()];
                 case 1:
@@ -103,36 +103,23 @@ function rhAndScraperTest(baseEthAmount, capitolTradesID) {
         });
     });
 }
+/**
+ * Testing the E*TRADE API.
+ */
 function etradeTest() {
     return __awaiter(this, void 0, void 0, function () {
-        var etradeTrader, authURL, error_1, error_2;
+        var etrader;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    etradeTrader = new etrade_1.eTradeSandboxTrader();
-                    authURL = "";
-                    _a.label = 1;
+                    etrader = new etrade_1.etraderSandbox();
+                    return [4 /*yield*/, etrader.authorize()];
                 case 1:
-                    _a.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, etradeTrader.authorize()];
-                case 2:
-                    authURL = _a.sent();
-                    return [3 /*break*/, 4];
-                case 3:
-                    error_1 = _a.sent();
-                    console.error("Token Request Failed: ", error_1);
-                    return [3 /*break*/, 4];
-                case 4:
-                    _a.trys.push([4, 6, , 7]);
-                    return [4 /*yield*/, etradeTrader.completeAuthorization()];
-                case 5:
                     _a.sent();
-                    return [3 /*break*/, 7];
-                case 6:
-                    error_2 = _a.sent();
-                    console.error("Token Verification Failed: ", error_2);
-                    return [3 /*break*/, 7];
-                case 7: return [2 /*return*/];
+                    return [4 /*yield*/, etrader.completeAuthorization()];
+                case 2:
+                    _a.sent();
+                    return [2 /*return*/];
             }
         });
     });
@@ -140,11 +127,15 @@ function etradeTest() {
 function main() {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
-            // const pelosiID = "P000197"
-            // const ethAmount = 0.0001
-            // await rhAndScraperTest(ethAmount, pelosiID)
-            etradeTest();
-            return [2 /*return*/];
+            switch (_a.label) {
+                case 0: 
+                // await rhAndScraperTest()
+                return [4 /*yield*/, etradeTest()];
+                case 1:
+                    // await rhAndScraperTest()
+                    _a.sent();
+                    return [2 /*return*/];
+            }
         });
     });
 }

@@ -36,14 +36,14 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.eTradeSandboxTrader = void 0;
+exports.etraderSandbox = void 0;
 var dotenv = require("dotenv");
 var path = require("path");
 var url = require("node:url");
 var readline = require("readline");
 var client_1 = require("./oauth/client");
-var eTradeSandboxTrader = /** @class */ (function () {
-    function eTradeSandboxTrader() {
+var etraderSandbox = /** @class */ (function () {
+    function etraderSandbox() {
         var _a, _b;
         dotenv.config({ path: path.resolve(process.cwd(), '../.env') });
         this.sandboxKey = (_a = process.env.ET_SANDBOX_API_KEY) !== null && _a !== void 0 ? _a : "";
@@ -61,14 +61,15 @@ var eTradeSandboxTrader = /** @class */ (function () {
             accessURL: this.oauthAccessURL,
         };
         this.oAuthClient = new client_1.eTradeOauth(oauthConfig);
-        console.log("Successfully created new eTradeSanboxTrader");
     }
-    eTradeSandboxTrader.prototype.authorize = function () {
+    etraderSandbox.prototype.authorize = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, token, tokenSecret, authorizeURL;
+            var _a, token, tokenSecret, authorizeURL, error_1;
             return __generator(this, function (_b) {
                 switch (_b.label) {
-                    case 0: return [4 /*yield*/, this.oAuthClient.requestToken()];
+                    case 0:
+                        _b.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, this.oAuthClient.requestToken()];
                     case 1:
                         _a = _b.sent(), token = _a.token, tokenSecret = _a.tokenSecret, authorizeURL = _a.authorizeURL;
                         console.log("Visit the following URL to get your authorization code:");
@@ -76,13 +77,18 @@ var eTradeSandboxTrader = /** @class */ (function () {
                         this.tempToken = token;
                         this.tempTokenSecret = tokenSecret;
                         return [2 /*return*/, authorizeURL];
+                    case 2:
+                        error_1 = _b.sent();
+                        console.log("Token Verification Failed: ", error_1);
+                        throw error_1;
+                    case 3: return [2 /*return*/];
                 }
             });
         });
     };
-    eTradeSandboxTrader.prototype.completeAuthorization = function () {
+    etraderSandbox.prototype.completeAuthorization = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var rl, verificationCode, _a, token, tokenSecret, error_1;
+            var rl, verificationCode, _a, token, tokenSecret, error_2;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -110,9 +116,9 @@ var eTradeSandboxTrader = /** @class */ (function () {
                         console.log("Successfully verified user!");
                         return [3 /*break*/, 5];
                     case 4:
-                        error_1 = _b.sent();
-                        console.error("Verification Failed.", error_1);
-                        throw error_1;
+                        error_2 = _b.sent();
+                        console.error("Verification Failed.", error_2);
+                        throw error_2;
                     case 5: return [2 /*return*/];
                 }
             });
@@ -121,10 +127,10 @@ var eTradeSandboxTrader = /** @class */ (function () {
     /**
      * Helper method to check if user is authorized
      */
-    eTradeSandboxTrader.prototype.isAuthorized = function () {
+    etraderSandbox.prototype.isAuthorized = function () {
         return !!(this.accessToken && this.accessTokenSecret);
     };
-    eTradeSandboxTrader.prototype.buildUrl = function (apiKey, secretKey, baseURL, path, pageOrQuery) {
+    etraderSandbox.prototype.buildUrl = function (apiKey, secretKey, baseURL, path, pageOrQuery) {
         if (baseURL === null) {
             throw new Error('Must provide a base url');
         }
@@ -144,10 +150,10 @@ var eTradeSandboxTrader = /** @class */ (function () {
             query: query,
         });
     };
-    return eTradeSandboxTrader;
+    return etraderSandbox;
 }());
-exports.eTradeSandboxTrader = eTradeSandboxTrader;
+exports.etraderSandbox = etraderSandbox;
 function main() {
-    var trader = new eTradeSandboxTrader();
+    var trader = new etraderSandbox();
 }
 main();

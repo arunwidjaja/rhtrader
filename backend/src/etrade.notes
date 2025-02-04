@@ -1,0 +1,40 @@
+In the file previewOrder.js, the previewOrder function obtains the following path URL for previewing an order:
+
+	/v1/accounts/dBZOKt9xDrtRSAOl4MSiiA/orders/preview.json
+
+This is built in session.js from the following code:
+
+	`${session.api.accountsUri + acct.accountIdKey}/orders.json`;
+
+In previewOrder.js, this is used to call the post():
+
+	const response = authClient.post(reqUrl, requestObject);
+
+The implementation of post() is in Client.js:
+
+
+	Client.prototype.post = function (path, content, token, secret) {
+		const credentials = getCredentials(token, secret, true);
+		const url = buildUrl(this.apiKey, this.apiSecret, this.apiHostName, path);
+		const url = buildUrl(this.apiKey, this.apiSecret, this.apiHostName, path);
+		...
+	}
+
+Note that token and secret aren't passed in because it uses the ones stored in the client object by default.
+buildUrl is also in Client.js, and uses node's url library to format the url
+
+function buildUrl(apiKey, apiSecret, apiHostName, path, pageOrQuery) {
+	...
+	return url.format({
+		protocol: 'https:',
+		hostname: apiHostName,
+		pathname: path,
+		query,
+	});
+	...
+}
+
+So the final url is:
+
+https://apisb.etrade.com/v1/accounts/dBZOKt9xDrtRSAOl4MSiiA/orders/preview.json
+

@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 import { RobinHoodCryptoTrader } from './robinhood';
 import { CapitolTradesScraper } from './capitolTradesScraper';
-import { eTradeSandboxTrader } from './etrade';
+import { etraderSandbox } from './etrade';
 
 /**
  * Testing the CapitolTrades.com scraper and the RobinHood API.
@@ -13,9 +13,9 @@ import { eTradeSandboxTrader } from './etrade';
  * @param baseEthAmount The amount of ETH to trade per transaction. Pick a small number.
  * @param capitolTradesID The politician to track.
  */
-async function rhAndScraperTest(baseEthAmount: number, capitolTradesID: string): Promise<void> {
-  const ethAmount = baseEthAmount
-  const pid = capitolTradesID
+async function rhAndScraperTest(): Promise<void> {
+  const ethAmount = 0.0001
+  const pid = "P000197"
 
   const rh = new RobinHoodCryptoTrader()
   const account = await rh.get_account()
@@ -58,17 +58,18 @@ async function rhAndScraperTest(baseEthAmount: number, capitolTradesID: string):
   }
 }
 
+/**
+ * Testing the E*TRADE API.
+ */
 async function etradeTest() {
-  const etrader = new eTradeSandboxTrader()
+  const etrader = new etraderSandbox()
   await etrader.authorize()
   await etrader.completeAuthorization()
 }
 
 async function main() {
-  // const pelosiID = "P000197"
-  // const ethAmount = 0.0001
-  // await rhAndScraperTest(ethAmount, pelosiID)
-  etradeTest()
+  // await rhAndScraperTest()
+  await etradeTest()
 }
 
 

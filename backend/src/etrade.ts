@@ -5,7 +5,7 @@ import * as readline from 'readline'
 
 import { eTradeOauth } from './oauth/client';
 
-export class eTradeSandboxTrader {
+export class etraderSandbox {
     private sandboxKey: string;
     private secretKey: string;
 
@@ -136,6 +136,6 @@ export class eTradeSandboxTrader {
 }
 
 function main() {
-    const trader = new eTradeSandboxTrader();
+    const trader = new etraderSandbox();
 }
 main()
