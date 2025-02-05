@@ -38,3 +38,47 @@ So the final url is:
 
 https://apisb.etrade.com/v1/accounts/dBZOKt9xDrtRSAOl4MSiiA/orders/preview.json
 
+The sample application does not contain every endpoint.
+For example, the API to place orders is not included.
+However, this can be viewed on E*TRADE's API documentation.
+Here is a sample URL:
+
+https://apisb.etrade.com/v1/accounts/dBZOKt9xDrtRSAOl4MSiiA/orders/place
+
+
+
+
+==================
+
+Need to figure out:
+
+1.  How to structure the POST body.
+    This is passed to post() function.
+
+2.  How to keep a session alive or automatically authenticate the users without requring continuous login.
+
+
+=========
+
+Possible sample body for a place order POST request
+(Need to verify):
+
+{
+  "orderType": "EQ",
+  "clientOrderId": "my_unique_id_12345",
+  "order": [
+    {
+      "orderNumber": 1234,
+      "accountId": "83745",
+      "previewTime": 1707172800000,
+      "placedTime": 1707172800000,
+      "executedTime": null,
+      "orderValue": 5000.00,
+      "status": "OPEN"
+    }
+  ],
+  "previewIds": [
+    "preview_123"
+  ]
+}
+

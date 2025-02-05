@@ -131,8 +131,6 @@ export class etraderSandbox {
     // EtradeNodeClient -> oauth -> Client.js
     // Look at the Client.prototype.get/put/post/delete functions
     // URLs are built using the buildURL function in the same file.
-
-    // Example method for making an authenticated API call
 }
 
 function main() {

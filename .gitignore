@@ -67,3 +67,7 @@ temp/
 
 # Temporary folders
 EtradeNodeClient/
+
+# Temporary files
+tsArrayPractice.ts
+twoPointer.ts
